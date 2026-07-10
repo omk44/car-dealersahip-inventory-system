@@ -20,6 +20,10 @@ const vehicleSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    category: {
+      type: String,
+      trim: true,
+    },
   },
   {
     timestamps: true,
