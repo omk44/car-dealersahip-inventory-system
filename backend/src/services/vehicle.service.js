@@ -1,29 +1,28 @@
 const Vehicle = require('../models/vehicle.model');
 
-async function addVehicle(vehicleData) {
-  const createdVehicle = await Vehicle.create(vehicleData);
-
-  // Return a stable response shape instead of exposing the raw mongoose document.
+// Single place to shape a mongoose vehicle document into the API response
+// contract. Every public function uses this so the output stays consistent.
+function formatVehicle(vehicle) {
   return {
-    id: createdVehicle._id,
-    make: createdVehicle.make,
-    model: createdVehicle.model,
-    year: createdVehicle.year,
-    price: createdVehicle.price,
-  };
-}
-
-async function listVehicles() {
-  const vehicles = await Vehicle.find();
-
-  // Return a stable list shape so the API contract stays predictable.
-  return vehicles.map((vehicle) => ({
     id: vehicle._id,
     make: vehicle.make,
     model: vehicle.model,
     year: vehicle.year,
     price: vehicle.price,
-  }));
+    category: vehicle.category,
+  };
+}
+
+async function addVehicle(vehicleData) {
+  const createdVehicle = await Vehicle.create(vehicleData);
+
+  return formatVehicle(createdVehicle);
+}
+
+async function listVehicles() {
+  const vehicles = await Vehicle.find();
+
+  return vehicles.map(formatVehicle);
 }
 
 async function searchVehicles(filters) {
@@ -56,14 +55,7 @@ async function searchVehicles(filters) {
 
   const vehicles = await Vehicle.find(query);
 
-  return vehicles.map((vehicle) => ({
-    id: vehicle._id,
-    make: vehicle.make,
-    model: vehicle.model,
-    year: vehicle.year,
-    price: vehicle.price,
-    category: vehicle.category,
-  }));
+  return vehicles.map(formatVehicle);
 }
 
 module.exports = { addVehicle, listVehicles, searchVehicles };
