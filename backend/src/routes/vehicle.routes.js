@@ -9,13 +9,23 @@ const {
 
 const router = express.Router();
 
+// Centralised error handler that maps known service-layer error messages
+// to the correct HTTP status code. Keeps individual route handlers clean
+// and ensures consistent error responses as new routes are added.
+function handleRouteError(res, error) {
+  if (error.message === 'Vehicle not found') {
+    return res.status(404).json({ message: error.message });
+  }
+  return res.status(400).json({ message: error.message });
+}
+
 router.post('/', authenticateToken, async (req, res) => {
   try {
     // Keep this route protected so only authenticated users can add vehicles.
     const vehicle = await addVehicle(req.body);
     return res.status(201).json(vehicle);
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return handleRouteError(res, error);
   }
 });
 
@@ -36,7 +46,7 @@ router.get('/search', authenticateToken, async (req, res) => {
     const vehicles = await searchVehicles(filters);
     return res.status(200).json(vehicles);
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return handleRouteError(res, error);
   }
 });
 
@@ -46,7 +56,7 @@ router.get('/', authenticateToken, async (req, res) => {
     const vehicles = await listVehicles();
     return res.status(200).json(vehicles);
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return handleRouteError(res, error);
   }
 });
 
@@ -55,12 +65,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     const updatedVehicle = await updateVehicle(req.params.id, req.body);
     return res.status(200).json(updatedVehicle);
   } catch (error) {
-    // Distinguish "not found" from other errors so the client gets the
-    // correct status code instead of a generic 400.
-    if (error.message === 'Vehicle not found') {
-      return res.status(404).json({ message: error.message });
-    }
-    return res.status(400).json({ message: error.message });
+    return handleRouteError(res, error);
   }
 });
 
