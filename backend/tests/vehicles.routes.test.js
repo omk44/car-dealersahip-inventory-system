@@ -8,9 +8,10 @@ jest.mock('../src/services/vehicle.service', () => ({
   updateVehicle: jest.fn(),
   deleteVehicle: jest.fn(),
   purchaseVehicle: jest.fn(),
+  restockVehicle: jest.fn(),
 }));
 
-const { addVehicle, listVehicles, searchVehicles, updateVehicle, deleteVehicle, purchaseVehicle } = require('../src/services/vehicle.service');
+const { addVehicle, listVehicles, searchVehicles, updateVehicle, deleteVehicle, purchaseVehicle, restockVehicle } = require('../src/services/vehicle.service');
 const { createApp } = require('../src/app');
 
 describe('vehicle routes', () => {
@@ -391,6 +392,78 @@ describe('vehicle routes', () => {
 
     const response = await request(app)
       .post('/api/vehicles/vehicle-1/purchase');
+
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({ message: 'Unauthorized' });
+  });
+
+  test('POST /api/vehicles/:id/restock successfully restocks a vehicle when authenticated as admin', async () => {
+    restockVehicle.mockResolvedValueOnce({
+      id: 'vehicle-1',
+      make: 'Toyota',
+      model: 'Camry',
+      year: 2024,
+      price: 25000,
+      category: 'Sedan',
+      quantity: 6,
+    });
+
+    const app = createApp();
+    const token = jwt.sign({ id: 'admin-id', email: 'admin@example.com', role: 'admin' }, process.env.JWT_SECRET);
+
+    const response = await request(app)
+      .post('/api/vehicles/vehicle-1/restock')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ quantity: 5 });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      id: 'vehicle-1',
+      make: 'Toyota',
+      model: 'Camry',
+      year: 2024,
+      price: 25000,
+      category: 'Sedan',
+      quantity: 6,
+    });
+    // Verifies the service received the ID and the restock quantity.
+    expect(restockVehicle).toHaveBeenCalledWith('vehicle-1', 5);
+  });
+
+  test('POST /api/vehicles/:id/restock returns 403 Forbidden when authenticated as normal user', async () => {
+    const app = createApp();
+    const token = jwt.sign({ id: 'user-id', email: 'alex@example.com', role: 'user' }, process.env.JWT_SECRET);
+
+    const response = await request(app)
+      .post('/api/vehicles/vehicle-1/restock')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ quantity: 5 });
+
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({ message: 'Forbidden: Admin access required' });
+  });
+
+  test('POST /api/vehicles/:id/restock returns 404 when vehicle does not exist', async () => {
+    restockVehicle.mockRejectedValueOnce(new Error('Vehicle not found'));
+
+    const app = createApp();
+    const token = jwt.sign({ id: 'admin-id', email: 'admin@example.com', role: 'admin' }, process.env.JWT_SECRET);
+
+    const response = await request(app)
+      .post('/api/vehicles/nonexistent-id/restock')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ quantity: 5 });
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({ message: 'Vehicle not found' });
+  });
+
+  test('POST /api/vehicles/:id/restock rejects unauthenticated requests', async () => {
+    const app = createApp();
+
+    const response = await request(app)
+      .post('/api/vehicles/vehicle-1/restock')
+      .send({ quantity: 5 });
 
     expect(response.status).toBe(401);
     expect(response.body).toEqual({ message: 'Unauthorized' });
