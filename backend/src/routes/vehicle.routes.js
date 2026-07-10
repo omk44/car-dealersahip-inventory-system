@@ -7,6 +7,7 @@ const {
   updateVehicle,
   deleteVehicle,
   purchaseVehicle,
+  restockVehicle,
 } = require('../services/vehicle.service');
 
 const router = express.Router();
@@ -84,6 +85,16 @@ router.post('/:id/purchase', authenticateToken, async (req, res) => {
   try {
     const purchasedVehicle = await purchaseVehicle(req.params.id);
     return res.status(200).json(purchasedVehicle);
+  } catch (error) {
+    return handleRouteError(res, error);
+  }
+});
+
+router.post('/:id/restock', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const quantity = req.body.quantity ? Number(req.body.quantity) : 1;
+    const restockedVehicle = await restockVehicle(req.params.id, quantity);
+    return res.status(200).json(restockedVehicle);
   } catch (error) {
     return handleRouteError(res, error);
   }

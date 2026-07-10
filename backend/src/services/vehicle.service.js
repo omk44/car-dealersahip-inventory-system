@@ -101,4 +101,17 @@ async function purchaseVehicle(id) {
   return formatVehicle(vehicle);
 }
 
-module.exports = { addVehicle, listVehicles, searchVehicles, updateVehicle, deleteVehicle, purchaseVehicle };
+async function restockVehicle(id, quantity = 1) {
+  const vehicle = await Vehicle.findById(id);
+
+  if (!vehicle) {
+    throw new Error('Vehicle not found');
+  }
+
+  vehicle.quantity += quantity;
+  await vehicle.save();
+
+  return formatVehicle(vehicle);
+}
+
+module.exports = { addVehicle, listVehicles, searchVehicles, updateVehicle, deleteVehicle, purchaseVehicle, restockVehicle };
