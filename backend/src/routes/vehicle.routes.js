@@ -1,10 +1,11 @@
 const express = require('express');
-const { authenticateToken } = require('../middleware/auth.middleware');
+const { authenticateToken, requireAdmin } = require('../middleware/auth.middleware');
 const {
   addVehicle,
   listVehicles,
   searchVehicles,
   updateVehicle,
+  deleteVehicle,
 } = require('../services/vehicle.service');
 
 const router = express.Router();
@@ -64,6 +65,15 @@ router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const updatedVehicle = await updateVehicle(req.params.id, req.body);
     return res.status(200).json(updatedVehicle);
+  } catch (error) {
+    return handleRouteError(res, error);
+  }
+});
+
+router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    await deleteVehicle(req.params.id);
+    return res.status(200).json({ message: 'Vehicle deleted successfully' });
   } catch (error) {
     return handleRouteError(res, error);
   }

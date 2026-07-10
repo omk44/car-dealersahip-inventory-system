@@ -14,6 +14,7 @@ function authenticateToken(req, res, next) {
     req.user = {
       id: decoded.id,
       email: decoded.email,
+      role: decoded.role,
     };
     return next();
   } catch (error) {
@@ -21,4 +22,11 @@ function authenticateToken(req, res, next) {
   }
 }
 
-module.exports = { authenticateToken };
+function requireAdmin(req, res, next) {
+  if (req.user && req.user.role === 'admin') {
+    return next();
+  }
+  return res.status(403).json({ message: 'Forbidden: Admin access required' });
+}
+
+module.exports = { authenticateToken, requireAdmin };
