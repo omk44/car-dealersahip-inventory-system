@@ -73,4 +73,12 @@ async function updateVehicle(id, updateData) {
   return formatVehicle(updatedVehicle);
 }
 
-module.exports = { addVehicle, listVehicles, searchVehicles, updateVehicle };
+async function deleteVehicle(id) {
+  const deletedVehicle = await Vehicle.findByIdAndDelete(id);
+
+  if (!deletedVehicle) {
+    throw new Error('Vehicle not found');
+  }
+}
+
+module.exports = { addVehicle, listVehicles, searchVehicles, updateVehicle, deleteVehicle };

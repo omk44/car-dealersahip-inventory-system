@@ -6,9 +6,10 @@ jest.mock('../src/services/vehicle.service', () => ({
   listVehicles: jest.fn(),
   searchVehicles: jest.fn(),
   updateVehicle: jest.fn(),
+  deleteVehicle: jest.fn(),
 }));
 
-const { addVehicle, listVehicles, searchVehicles, updateVehicle } = require('../src/services/vehicle.service');
+const { addVehicle, listVehicles, searchVehicles, updateVehicle, deleteVehicle } = require('../src/services/vehicle.service');
 const { createApp } = require('../src/app');
 
 describe('vehicle routes', () => {
@@ -267,6 +268,59 @@ describe('vehicle routes', () => {
     const response = await request(app)
       .put('/api/vehicles/vehicle-1')
       .send({ price: 30000 });
+
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({ message: 'Unauthorized' });
+  });
+
+  test('DELETE /api/vehicles/:id deletes a vehicle when authenticated as admin', async () => {
+    deleteVehicle.mockResolvedValueOnce();
+
+    const app = createApp();
+    // Token includes role: 'admin'
+    const token = jwt.sign({ id: 'admin-id', email: 'admin@example.com', role: 'admin' }, process.env.JWT_SECRET);
+
+    const response = await request(app)
+      .delete('/api/vehicles/vehicle-1')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ message: 'Vehicle deleted successfully' });
+    expect(deleteVehicle).toHaveBeenCalledWith('vehicle-1');
+  });
+
+  test('DELETE /api/vehicles/:id returns 403 Forbidden when authenticated as normal user', async () => {
+    const app = createApp();
+    // Default or user role
+    const token = jwt.sign({ id: 'user-id', email: 'alex@example.com', role: 'user' }, process.env.JWT_SECRET);
+
+    const response = await request(app)
+      .delete('/api/vehicles/vehicle-1')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({ message: 'Forbidden: Admin access required' });
+  });
+
+  test('DELETE /api/vehicles/:id returns 404 when the vehicle does not exist', async () => {
+    deleteVehicle.mockRejectedValueOnce(new Error('Vehicle not found'));
+
+    const app = createApp();
+    const token = jwt.sign({ id: 'admin-id', email: 'admin@example.com', role: 'admin' }, process.env.JWT_SECRET);
+
+    const response = await request(app)
+      .delete('/api/vehicles/nonexistent-id')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({ message: 'Vehicle not found' });
+  });
+
+  test('DELETE /api/vehicles/:id rejects unauthenticated requests', async () => {
+    const app = createApp();
+
+    const response = await request(app)
+      .delete('/api/vehicles/vehicle-1');
 
     expect(response.status).toBe(401);
     expect(response.body).toEqual({ message: 'Unauthorized' });
