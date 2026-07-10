@@ -22,6 +22,7 @@ const vehicleSchema = new mongoose.Schema(
     },
     category: {
       type: String,
+      required: true,
       trim: true,
     },
     quantity: {
