@@ -10,6 +10,7 @@ function formatVehicle(vehicle) {
     year: vehicle.year,
     price: vehicle.price,
     category: vehicle.category,
+    quantity: vehicle.quantity,
   };
 }
 
@@ -81,4 +82,23 @@ async function deleteVehicle(id) {
   }
 }
 
-module.exports = { addVehicle, listVehicles, searchVehicles, updateVehicle, deleteVehicle };
+async function purchaseVehicle(id) {
+  // First, find the vehicle to check stock
+  const vehicle = await Vehicle.findById(id);
+
+  if (!vehicle) {
+    throw new Error('Vehicle not found');
+  }
+
+  if (vehicle.quantity <= 0) {
+    throw new Error('Vehicle out of stock');
+  }
+
+  // Decrement the quantity and save
+  vehicle.quantity -= 1;
+  await vehicle.save();
+
+  return formatVehicle(vehicle);
+}
+
+module.exports = { addVehicle, listVehicles, searchVehicles, updateVehicle, deleteVehicle, purchaseVehicle };
