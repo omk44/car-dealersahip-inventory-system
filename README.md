@@ -13,4 +13,6 @@ Monorepo scaffold for a full-stack car dealership inventory application.
 - Used GitHub Copilot to verify the backend Jest smoke test and the frontend Vite build during setup.
 - Used GitHub Copilot to initialize git at the repository root and prepare the project for the first commit.
 - Used GitHub Copilot to draft this README section so I can keep expanding my AI usage notes as the project grows.
-- Reflection: AI helped me move quickly through repetitive setup work, while I still verified each command and kept the structure intentionally minimal so I can build features with TDD later.
+- Used Claude AI to debug a JWT `secretOrPrivateKey must have a value` error caused by `dotenv.config()` being called too late in the startup sequence, then moved env loading to the top of `index.js`.
+- Used Claude AI to implement the `GET /api/vehicles` list endpoint following TDD: wrote the failing test first (RED), then implemented the service and route (GREEN), and finally cleaned up stale server test mocks (BLUE/REFACTOR).
+- Reflection: AI helped me move quickly through repetitive setup work, while I still verified each command and kept the structure intentionally minimal so I can build features with TDD later. Using Claude for the dotenv debugging was especially valuable — it traced through the execution order across multiple files to identify a race condition I might have missed on my own.
