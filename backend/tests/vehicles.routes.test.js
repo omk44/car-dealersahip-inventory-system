@@ -7,9 +7,10 @@ jest.mock('../src/services/vehicle.service', () => ({
   searchVehicles: jest.fn(),
   updateVehicle: jest.fn(),
   deleteVehicle: jest.fn(),
+  purchaseVehicle: jest.fn(),
 }));
 
-const { addVehicle, listVehicles, searchVehicles, updateVehicle, deleteVehicle } = require('../src/services/vehicle.service');
+const { addVehicle, listVehicles, searchVehicles, updateVehicle, deleteVehicle, purchaseVehicle } = require('../src/services/vehicle.service');
 const { createApp } = require('../src/app');
 
 describe('vehicle routes', () => {
@@ -321,6 +322,75 @@ describe('vehicle routes', () => {
 
     const response = await request(app)
       .delete('/api/vehicles/vehicle-1');
+
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({ message: 'Unauthorized' });
+  });
+
+  test('POST /api/vehicles/:id/purchase successfully purchases a vehicle', async () => {
+    purchaseVehicle.mockResolvedValueOnce({
+      id: 'vehicle-1',
+      make: 'Toyota',
+      model: 'Camry',
+      year: 2024,
+      price: 25000,
+      category: 'Sedan',
+      quantity: 0,
+    });
+
+    const app = createApp();
+    const token = jwt.sign({ id: 'user-id', email: 'alex@example.com', role: 'user' }, process.env.JWT_SECRET);
+
+    const response = await request(app)
+      .post('/api/vehicles/vehicle-1/purchase')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      id: 'vehicle-1',
+      make: 'Toyota',
+      model: 'Camry',
+      year: 2024,
+      price: 25000,
+      category: 'Sedan',
+      quantity: 0,
+    });
+    expect(purchaseVehicle).toHaveBeenCalledWith('vehicle-1');
+  });
+
+  test('POST /api/vehicles/:id/purchase returns 400 when out of stock', async () => {
+    purchaseVehicle.mockRejectedValueOnce(new Error('Vehicle out of stock'));
+
+    const app = createApp();
+    const token = jwt.sign({ id: 'user-id', email: 'alex@example.com', role: 'user' }, process.env.JWT_SECRET);
+
+    const response = await request(app)
+      .post('/api/vehicles/vehicle-1/purchase')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ message: 'Vehicle out of stock' });
+  });
+
+  test('POST /api/vehicles/:id/purchase returns 404 when vehicle does not exist', async () => {
+    purchaseVehicle.mockRejectedValueOnce(new Error('Vehicle not found'));
+
+    const app = createApp();
+    const token = jwt.sign({ id: 'user-id', email: 'alex@example.com', role: 'user' }, process.env.JWT_SECRET);
+
+    const response = await request(app)
+      .post('/api/vehicles/nonexistent-id/purchase')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({ message: 'Vehicle not found' });
+  });
+
+  test('POST /api/vehicles/:id/purchase rejects unauthenticated requests', async () => {
+    const app = createApp();
+
+    const response = await request(app)
+      .post('/api/vehicles/vehicle-1/purchase');
 
     expect(response.status).toBe(401);
     expect(response.body).toEqual({ message: 'Unauthorized' });
