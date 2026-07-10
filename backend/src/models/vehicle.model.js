@@ -24,6 +24,12 @@ const vehicleSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    quantity: {
+      type: Number,
+      required: true,
+      default: 1,
+      min: 0,
+    },
   },
   {
     timestamps: true,

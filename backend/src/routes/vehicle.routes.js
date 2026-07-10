@@ -6,6 +6,7 @@ const {
   searchVehicles,
   updateVehicle,
   deleteVehicle,
+  purchaseVehicle,
 } = require('../services/vehicle.service');
 
 const router = express.Router();
@@ -74,6 +75,15 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     await deleteVehicle(req.params.id);
     return res.status(200).json({ message: 'Vehicle deleted successfully' });
+  } catch (error) {
+    return handleRouteError(res, error);
+  }
+});
+
+router.post('/:id/purchase', authenticateToken, async (req, res) => {
+  try {
+    const purchasedVehicle = await purchaseVehicle(req.params.id);
+    return res.status(200).json(purchasedVehicle);
   } catch (error) {
     return handleRouteError(res, error);
   }
