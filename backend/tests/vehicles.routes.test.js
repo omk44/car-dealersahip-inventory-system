@@ -5,9 +5,10 @@ jest.mock('../src/services/vehicle.service', () => ({
   addVehicle: jest.fn(),
   listVehicles: jest.fn(),
   searchVehicles: jest.fn(),
+  updateVehicle: jest.fn(),
 }));
 
-const { addVehicle, listVehicles, searchVehicles } = require('../src/services/vehicle.service');
+const { addVehicle, listVehicles, searchVehicles, updateVehicle } = require('../src/services/vehicle.service');
 const { createApp } = require('../src/app');
 
 describe('vehicle routes', () => {
@@ -209,6 +210,63 @@ describe('vehicle routes', () => {
 
     const response = await request(app)
       .get('/api/vehicles/search?make=Toyota');
+
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({ message: 'Unauthorized' });
+  });
+
+  test('PUT /api/vehicles/:id updates a vehicle when authenticated', async () => {
+    updateVehicle.mockResolvedValueOnce({
+      id: 'vehicle-1',
+      make: 'Toyota',
+      model: 'Camry',
+      year: 2025,
+      price: 27000,
+      category: 'Sedan',
+    });
+
+    const app = createApp();
+    const token = jwt.sign({ id: 'user-id', email: 'alex@example.com' }, process.env.JWT_SECRET);
+
+    const response = await request(app)
+      .put('/api/vehicles/vehicle-1')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ year: 2025, price: 27000 });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      id: 'vehicle-1',
+      make: 'Toyota',
+      model: 'Camry',
+      year: 2025,
+      price: 27000,
+      category: 'Sedan',
+    });
+    // Verify service receives the id and the update payload separately.
+    expect(updateVehicle).toHaveBeenCalledWith('vehicle-1', { year: 2025, price: 27000 });
+  });
+
+  test('PUT /api/vehicles/:id returns 404 when the vehicle does not exist', async () => {
+    updateVehicle.mockRejectedValueOnce(new Error('Vehicle not found'));
+
+    const app = createApp();
+    const token = jwt.sign({ id: 'user-id', email: 'alex@example.com' }, process.env.JWT_SECRET);
+
+    const response = await request(app)
+      .put('/api/vehicles/nonexistent-id')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ price: 30000 });
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({ message: 'Vehicle not found' });
+  });
+
+  test('PUT /api/vehicles/:id rejects unauthenticated requests', async () => {
+    const app = createApp();
+
+    const response = await request(app)
+      .put('/api/vehicles/vehicle-1')
+      .send({ price: 30000 });
 
     expect(response.status).toBe(401);
     expect(response.body).toEqual({ message: 'Unauthorized' });

@@ -58,4 +58,19 @@ async function searchVehicles(filters) {
   return vehicles.map(formatVehicle);
 }
 
-module.exports = { addVehicle, listVehicles, searchVehicles };
+async function updateVehicle(id, updateData) {
+  // Return the updated document by setting { new: true } so the caller
+  // gets back the post-update state instead of the stale pre-update one.
+  const updatedVehicle = await Vehicle.findByIdAndUpdate(id, updateData, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!updatedVehicle) {
+    throw new Error('Vehicle not found');
+  }
+
+  return formatVehicle(updatedVehicle);
+}
+
+module.exports = { addVehicle, listVehicles, searchVehicles, updateVehicle };
