@@ -13,4 +13,17 @@ async function addVehicle(vehicleData) {
   };
 }
 
-module.exports = { addVehicle };
+async function listVehicles() {
+  const vehicles = await Vehicle.find();
+
+  // Return a stable list shape so the API contract stays predictable.
+  return vehicles.map((vehicle) => ({
+    id: vehicle._id,
+    make: vehicle.make,
+    model: vehicle.model,
+    year: vehicle.year,
+    price: vehicle.price,
+  }));
+}
+
+module.exports = { addVehicle, listVehicles };

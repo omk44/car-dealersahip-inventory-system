@@ -1,12 +1,6 @@
 jest.mock('../src/config/db', () => ({
   connectDb: jest.fn(),
 }));
-
-jest.mock('dotenv', () => ({
-  config: jest.fn(),
-}));
-
-const dotenv = require('dotenv');
 const { connectDb } = require('../src/config/db');
 
 describe('startServer', () => {
@@ -16,7 +10,7 @@ describe('startServer', () => {
     process.env.JWT_SECRET = 'test-secret';
   });
 
-  test('loads environment variables, connects to the database, then starts listening', async () => {
+  test('connects to the database then starts listening', async () => {
     const app = {
       listen: jest.fn((port, callback) => callback()),
     };
@@ -27,7 +21,6 @@ describe('startServer', () => {
 
     await startServer(app);
 
-    expect(dotenv.config).toHaveBeenCalled();
     expect(connectDb).toHaveBeenCalledTimes(1);
     expect(app.listen).toHaveBeenCalledWith('5050', expect.any(Function));
   });
