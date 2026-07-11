@@ -39,6 +39,8 @@ const Dashboard = () => {
 
   const [purchaseModal, setPurchaseModal] = useState({ show: false, car: null, qty: 1 });
   const [purchasing, setPurchasing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   const fetchVehicles = async () => {
     try {
@@ -51,6 +53,7 @@ const Dashboard = () => {
       const endpoint = query.toString() ? `/vehicles/search?${query.toString()}` : '/vehicles';
       const response = await api.get(endpoint);
       setVehicles(response.data);
+      setCurrentPage(1); // Reset to page 1 on new search
     } catch (err) {
       console.error('Error fetching vehicles:', err);
     } finally {
@@ -88,6 +91,14 @@ const Dashboard = () => {
       setPurchasing(false);
     }
   };
+
+  // Pagination calculations
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentVehicles = vehicles.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(vehicles.length / itemsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
     <div className="container" style={{ paddingBottom: '5rem' }}>
@@ -142,62 +153,114 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Vehicle Grid Header */}
+      {!loading && vehicles.length > 0 && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem' }}>
+          <h2 style={{ fontSize: '1.5rem', color: 'var(--text-secondary)', margin: 0 }}>Available Inventory</h2>
+          <div style={{ background: 'rgba(255,255,255,0.05)', padding: '6px 16px', borderRadius: '20px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+            Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, vehicles.length)} of {vehicles.length}
+          </div>
+        </div>
+      )}
+
       {/* Vehicle Grid */}
       {loading ? (
         <div style={{ textAlign: 'center', marginTop: '3rem' }}>
           <div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid rgba(255,255,255,0.1)', borderTopColor: 'var(--accent-color)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2.5rem' }}>
-          {vehicles.length === 0 ? (
-            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '4rem', background: 'rgba(255,255,255,0.02)', borderRadius: '20px', border: '1px dashed var(--glass-border)' }}>
-              <h3 style={{ color: 'var(--text-secondary)', fontSize: '1.5rem' }}>No vehicles matched your search.</h3>
-              <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', opacity: 0.6 }}>Try adjusting your filters to find your dream car.</p>
-            </div>
-          ) : (
-            vehicles.map((car) => (
-              <div key={car._id || car.id} className="glass-panel" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'transform 0.3s, box-shadow 0.3s', cursor: 'pointer' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 15px 30px rgba(0,0,0,0.3)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}>
-                {/* Custom Gradient "Image" Area */}
-                <div style={{ height: '180px', background: 'linear-gradient(135deg, rgba(26, 29, 45, 1) 0%, rgba(99, 102, 241, 0.2) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                  <div style={{ position: 'absolute', top: '15px', right: '15px', background: 'rgba(0,0,0,0.5)', padding: '5px 12px', borderRadius: '20px', fontSize: '0.8rem', color: 'var(--text-secondary)', backdropFilter: 'blur(5px)' }}>
-                    {car.year} • {car.category}
-                  </div>
-                  <h2 style={{ color: 'white', opacity: 0.9, letterSpacing: '4px', textTransform: 'uppercase', fontSize: '2rem', fontWeight: '300' }}>{car.make}</h2>
-                </div>
-                
-                <div style={{ padding: '2rem', flex: 1, display: 'flex', flexDirection: 'column', background: 'rgba(255,255,255,0.02)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                    <h3 style={{ fontSize: '1.6rem', margin: 0, fontWeight: '500' }}>{car.model}</h3>
-                    <h3 style={{ color: 'var(--success)', margin: 0, fontSize: '1.4rem' }}>₹{car.price.toLocaleString()}</h3>
-                  </div>
-
-                  {car.quantity < 5 && car.quantity > 0 && (
-                    <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', padding: '6px 12px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '1rem', display: 'inline-block', width: 'fit-content' }}>
-                      🔥 Low Stock: Only {car.quantity} left!
-                    </div>
-                  )}
-
-                  <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: car.quantity > 0 ? 'var(--success)' : 'var(--danger)', boxShadow: `0 0 10px ${car.quantity > 0 ? 'var(--success)' : 'var(--danger)'}` }}></div>
-                      <span style={{ color: car.quantity > 0 ? 'var(--text-secondary)' : 'var(--danger)', fontWeight: '500', fontSize: '0.9rem' }}>
-                        {car.quantity > 0 ? `${car.quantity} Available` : 'Sold Out'}
-                      </span>
-                    </div>
-                    <button 
-                      className="btn btn-primary" 
-                      onClick={() => handlePurchaseClick(car)}
-                      disabled={car.quantity === 0}
-                      style={{ padding: '10px 24px', borderRadius: '25px' }}
-                    >
-                      {car.quantity > 0 ? 'Purchase' : 'Unavailable'}
-                    </button>
-                  </div>
-                </div>
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2.5rem' }}>
+            {vehicles.length === 0 ? (
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '4rem', background: 'rgba(255,255,255,0.02)', borderRadius: '20px', border: '1px dashed var(--glass-border)' }}>
+                <h3 style={{ color: 'var(--text-secondary)', fontSize: '1.5rem' }}>No vehicles matched your search.</h3>
+                <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', opacity: 0.6 }}>Try adjusting your filters to find your dream car.</p>
               </div>
-            ))
+            ) : (
+              currentVehicles.map((car) => (
+                <div key={car._id || car.id} className="glass-panel" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'transform 0.3s, box-shadow 0.3s', cursor: 'pointer' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 15px 30px rgba(0,0,0,0.3)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}>
+                  {/* Custom Gradient "Image" Area */}
+                  <div style={{ height: '180px', background: 'linear-gradient(135deg, rgba(26, 29, 45, 1) 0%, rgba(99, 102, 241, 0.2) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                    <div style={{ position: 'absolute', top: '15px', right: '15px', background: 'rgba(0,0,0,0.5)', padding: '5px 12px', borderRadius: '20px', fontSize: '0.8rem', color: 'var(--text-secondary)', backdropFilter: 'blur(5px)' }}>
+                      {car.year} • {car.category}
+                    </div>
+                    <h2 style={{ color: 'white', opacity: 0.9, letterSpacing: '4px', textTransform: 'uppercase', fontSize: '2rem', fontWeight: '300' }}>{car.make}</h2>
+                  </div>
+                  
+                  <div style={{ padding: '2rem', flex: 1, display: 'flex', flexDirection: 'column', background: 'rgba(255,255,255,0.02)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                      <h3 style={{ fontSize: '1.6rem', margin: 0, fontWeight: '500' }}>{car.model}</h3>
+                      <h3 style={{ color: 'var(--success)', margin: 0, fontSize: '1.4rem' }}>₹{car.price.toLocaleString()}</h3>
+                    </div>
+
+                    {car.quantity < 5 && car.quantity > 0 && (
+                      <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', padding: '6px 12px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '1rem', display: 'inline-block', width: 'fit-content' }}>
+                        🔥 Low Stock: Only {car.quantity} left!
+                      </div>
+                    )}
+
+                    <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: car.quantity > 0 ? 'var(--success)' : 'var(--danger)', boxShadow: `0 0 10px ${car.quantity > 0 ? 'var(--success)' : 'var(--danger)'}` }}></div>
+                        <span style={{ color: car.quantity > 0 ? 'var(--text-secondary)' : 'var(--danger)', fontWeight: '500', fontSize: '0.9rem' }}>
+                          {car.quantity > 0 ? `${car.quantity} Available` : 'Sold Out'}
+                        </span>
+                      </div>
+                      <button 
+                        className="btn btn-primary" 
+                        onClick={() => handlePurchaseClick(car)}
+                        disabled={car.quantity === 0}
+                        style={{ padding: '10px 24px', borderRadius: '25px' }}
+                      >
+                        {car.quantity > 0 ? 'Purchase' : 'Unavailable'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          
+          {/* Pagination Controls */}
+          {!loading && totalPages > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '4rem' }}>
+              <button 
+                onClick={() => {
+                  paginate(Math.max(1, currentPage - 1));
+                  window.scrollTo({ top: 400, behavior: 'smooth' });
+                }}
+                disabled={currentPage === 1}
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: currentPage === 1 ? 'var(--text-secondary)' : 'white', width: '40px', height: '40px', borderRadius: '10px', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: '1.1rem' }}
+              >
+                &lt;
+              </button>
+              
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <button 
+                  key={i} 
+                  onClick={() => {
+                    paginate(i + 1);
+                    window.scrollTo({ top: 400, behavior: 'smooth' });
+                  }}
+                  style={{ background: currentPage === i + 1 ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', width: '40px', height: '40px', borderRadius: '10px', cursor: 'pointer', fontWeight: currentPage === i + 1 ? 'bold' : 'normal', fontSize: '1rem' }}
+                >
+                  {i + 1}
+                </button>
+              ))}
+
+              <button 
+                onClick={() => {
+                  paginate(Math.min(totalPages, currentPage + 1));
+                  window.scrollTo({ top: 400, behavior: 'smooth' });
+                }}
+                disabled={currentPage === totalPages}
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: currentPage === totalPages ? 'var(--text-secondary)' : 'white', width: '40px', height: '40px', borderRadius: '10px', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontSize: '1.1rem' }}
+              >
+                &gt;
+              </button>
+            </div>
           )}
-        </div>
+        </>
       )}
 
       {/* Advanced Purchase Modal (Template Match) */}

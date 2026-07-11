@@ -49,6 +49,8 @@ const AdminPortal = () => {
     }
   }, [user, navigate]);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const fetchVehicles = async () => {
     try {
       const response = await api.get('/vehicles');
@@ -66,6 +68,14 @@ const AdminPortal = () => {
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const incrementQty = () => {
+    setFormData(prev => ({ ...prev, quantity: Number(prev.quantity || 0) + 1 }));
+  };
+
+  const decrementQty = () => {
+    setFormData(prev => ({ ...prev, quantity: Math.max(0, Number(prev.quantity || 0) - 1) }));
   };
 
   const handleSubmit = async (e) => {
@@ -113,6 +123,12 @@ const AdminPortal = () => {
       setDeleteModal({ show: false, carId: null, carMake: '', carModel: '' });
       showToast('Vehicle permanently deleted', 'success');
       fetchVehicles();
+      
+      // Handle pagination edge case when deleting last item on a page
+      const newTotalPages = Math.ceil((vehicles.length - 1) / itemsPerPage);
+      if (currentPage > newTotalPages && newTotalPages > 0) {
+        setCurrentPage(newTotalPages);
+      }
     } catch (err) {
       showToast(err.response?.data?.message || 'Delete failed', 'error');
     }
@@ -126,7 +142,7 @@ const AdminPortal = () => {
     if (restockModal.qty && !isNaN(restockModal.qty)) {
       try {
         await api.post(`/vehicles/${restockModal.carId}/restock`, { quantity: Number(restockModal.qty) });
-        setRestockModal({ show: false, carId: null, carMake: '', carModel: '', qty: 5 });
+        setRestockModal({ show: false, carId: null, carMake: '', carModel: '', qty: 1 });
         showToast('Inventory successfully restocked!');
         fetchVehicles();
       } catch (err) {
@@ -134,6 +150,14 @@ const AdminPortal = () => {
       }
     }
   };
+
+  // Pagination Calculations
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentVehicles = vehicles.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(vehicles.length / itemsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
     <div className="container" style={{ paddingBottom: '5rem' }}>
@@ -158,55 +182,108 @@ const AdminPortal = () => {
       
       <div className="admin-grid">
         {/* Magic Form Area */}
-        <div className="glass-panel magic-form-container" style={{ padding: '2.5rem', height: 'fit-content' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
-            <h2 className="glow-text">{editingId ? 'Edit Vehicle' : 'Add New Vehicle'}</h2>
+        <div className="glass-panel magic-form-container" style={{ padding: '2.5rem', height: 'fit-content', position: 'sticky', top: '2rem' }}>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '2.5rem' }}>
+            <div style={{ width: '50px', height: '50px', borderRadius: '12px', background: 'linear-gradient(135deg, #4f46e5, #ec4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', boxShadow: '0 10px 20px rgba(99, 102, 241, 0.3)', flexShrink: 0 }}>
+              {editingId ? '✏️' : '🚀'}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h2 className="glow-text" style={{ margin: 0, fontSize: '1.6rem', letterSpacing: '-0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{editingId ? 'Edit Vehicle' : 'Deploy Vehicle'}</h2>
+              <p style={{ color: 'var(--text-secondary)', margin: '0.2rem 0 0 0', fontSize: '0.85rem' }}>{editingId ? 'Update data' : 'Add to fleet'}</p>
+            </div>
             {editingId && (
-              <button className="btn" onClick={() => { setEditingId(null); setFormData({ make: '', model: '', year: '', category: '', price: '', quantity: '' }); }} style={{ background: 'transparent', color: 'var(--text-secondary)' }}>Cancel Edit</button>
+              <button className="btn" onClick={() => { setEditingId(null); setFormData({ make: '', model: '', year: '', category: '', price: '', quantity: '' }); }} style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', padding: '8px', fontSize: '0.8rem', flexShrink: 0 }}>✕</button>
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className="magic-form">
-            <div className="input-group">
+          <form onSubmit={handleSubmit} className="magic-form" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            
+            <div className="input-group" style={{ margin: 0 }}>
               <input type="text" name="make" value={formData.make} onChange={handleInputChange} required />
-              <label>Vehicle Make (e.g. Tesla)</label>
+              <label>Make (e.g. Tesla)</label>
             </div>
-            <div className="input-group">
+            
+            <div className="input-group" style={{ margin: 0 }}>
               <input type="text" name="model" value={formData.model} onChange={handleInputChange} required />
-              <label>Vehicle Model (e.g. Model S)</label>
+              <label>Model (e.g. Model S)</label>
             </div>
-            <div className="input-group">
+
+            <div className="input-group" style={{ margin: 0 }}>
               <input type="number" name="year" value={formData.year} onChange={handleInputChange} required />
-              <label>Year (e.g. 2024)</label>
+              <label>Year</label>
             </div>
-            <div className="input-group">
+            
+            <div className="input-group" style={{ margin: 0 }}>
               <input type="text" name="category" value={formData.category} onChange={handleInputChange} required />
-              <label>Category (e.g. Sedan)</label>
+              <label>Category</label>
             </div>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <div className="input-group" style={{ flex: 1 }}>
-                <input type="number" name="price" value={formData.price} onChange={handleInputChange} required />
-                <label>Price (₹)</label>
-              </div>
-              <div className="input-group" style={{ flex: 1 }}>
-                <input type="number" name="quantity" value={formData.quantity} onChange={handleInputChange} required />
-                <label>Quantity</label>
+
+            <div className="input-group" style={{ margin: 0 }}>
+              <input type="number" name="price" value={formData.price} onChange={handleInputChange} required />
+              <label>Price (₹)</label>
+            </div>
+            
+            {/* Custom Quantity Selector */}
+            <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
+              <label style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', display: 'block', marginBottom: '10px' }}>Initial Stock Quantity</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%' }}>
+                <button 
+                  type="button"
+                  onClick={decrementQty}
+                  style={{ minWidth: '40px', flexShrink: 0, height: '40px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s', padding: 0 }}
+                >-</button>
+                <input 
+                  type="number" 
+                  name="quantity"
+                  value={formData.quantity}
+                  onChange={handleInputChange}
+                  required
+                  style={{ width: '100%', minWidth: '50px', flex: 1, background: 'transparent', border: 'none', borderBottom: '2px solid var(--accent-color)', height: '40px', textAlign: 'center', color: 'white', fontSize: '1.2rem', fontWeight: 'bold', outline: 'none' }}
+                />
+                <button 
+                  type="button"
+                  onClick={incrementQty}
+                  style={{ minWidth: '40px', flexShrink: 0, height: '40px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s', padding: 0 }}
+                >+</button>
               </div>
             </div>
             
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem', padding: '14px', fontSize: '1.1rem', letterSpacing: '1px' }}>
-              {editingId ? 'Save Changes' : 'Initialize Vehicle 🚀'}
+            <button 
+              type="submit" 
+              className="btn btn-primary" 
+              style={{ 
+                width: '100%', 
+                marginTop: '0.5rem', 
+                padding: '16px', 
+                fontSize: '1.1rem', 
+                letterSpacing: '1px', 
+                fontWeight: '600',
+                background: editingId ? 'linear-gradient(135deg, #f59e0b, #d97706)' : 'linear-gradient(135deg, #4f46e5, #8b5cf6)',
+                border: 'none',
+                boxShadow: editingId ? '0 10px 25px rgba(245, 158, 11, 0.4)' : '0 10px 25px rgba(99, 102, 241, 0.4)',
+                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-3px)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            >
+              {editingId ? '💾 Save Updates' : '✨ Initialize Vehicle'}
             </button>
           </form>
         </div>
 
         {/* Inventory List Area */}
         <div className="glass-panel" style={{ padding: '2rem' }}>
-          <h2 style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)' }}>Inventory Management</h2>
+          <h2 style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            Inventory Management
+            <span style={{ fontSize: '0.9rem', background: 'rgba(255,255,255,0.1)', padding: '4px 12px', borderRadius: '20px', color: 'white' }}>
+              Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, vehicles.length)} of {vehicles.length}
+            </span>
+          </h2>
           
           {loading ? <p>Loading fleet...</p> : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {vehicles.map((car) => (
+              {currentVehicles.map((car) => (
                 <div key={car._id || car.id} className="admin-list-item" style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem 1.5rem', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--glass-border)' }}>
                   <div>
                     <h3 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -226,6 +303,37 @@ const AdminPortal = () => {
                 </div>
               ))}
               {vehicles.length === 0 && <p style={{ color: 'var(--text-secondary)' }}>No vehicles in database. Add some!</p>}
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {!loading && totalPages > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '2rem' }}>
+              <button 
+                onClick={() => paginate(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: currentPage === 1 ? 'var(--text-secondary)' : 'white', width: '36px', height: '36px', borderRadius: '8px', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
+              >
+                &lt;
+              </button>
+              
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <button 
+                  key={i} 
+                  onClick={() => paginate(i + 1)}
+                  style={{ background: currentPage === i + 1 ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', width: '36px', height: '36px', borderRadius: '8px', cursor: 'pointer', fontWeight: currentPage === i + 1 ? 'bold' : 'normal' }}
+                >
+                  {i + 1}
+                </button>
+              ))}
+
+              <button 
+                onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: currentPage === totalPages ? 'var(--text-secondary)' : 'white', width: '36px', height: '36px', borderRadius: '8px', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+              >
+                &gt;
+              </button>
             </div>
           )}
         </div>
