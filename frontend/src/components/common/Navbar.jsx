@@ -1,9 +1,22 @@
-import { useContext } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
+  const [isLightMode, setIsLightMode] = useState(
+    localStorage.getItem('theme') === 'light'
+  );
+
+  useEffect(() => {
+    if (isLightMode) {
+      document.body.classList.add('light-mode');
+      localStorage.setItem('theme', 'light');
+    } else {
+      document.body.classList.remove('light-mode');
+      localStorage.setItem('theme', 'dark');
+    }
+  }, [isLightMode]);
 
   return (
     <nav className="glass-panel" style={{ padding: '1rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -11,7 +24,15 @@ const Navbar = () => {
         <h2 style={{ color: 'var(--accent-color)', margin: 0 }}>AutoAura</h2>
       </Link>
       
-      <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+        <button 
+          onClick={() => setIsLightMode(!isLightMode)} 
+          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'var(--text-primary)', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', transition: '0.3s' }}
+          title="Toggle Theme"
+        >
+          {isLightMode ? '🌙' : '☀️'}
+        </button>
+
         {user ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
             {user.role === 'admin' && (
@@ -28,7 +49,7 @@ const Navbar = () => {
           </div>
         ) : (
           <div style={{ display: 'flex', gap: '1rem' }}>
-            <Link to="/login" className="btn" style={{ background: 'transparent', color: 'white', border: '1px solid var(--glass-border)' }}>Login</Link>
+            <Link to="/login" className="btn" style={{ background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--glass-border)' }}>Login</Link>
             <Link to="/register" className="btn btn-primary">Register</Link>
           </div>
         )}

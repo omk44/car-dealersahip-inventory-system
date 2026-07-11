@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import Navbar from '../common/Navbar';
 import { AuthContext } from '../../context/AuthContext';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Pie } from 'react-chartjs-2';
+
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 const Toast = ({ message, visible, type = 'success' }) => (
   <div style={{
@@ -159,6 +163,47 @@ const AdminPortal = () => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  // Analytics Data
+  const makeData = vehicles.reduce((acc, car) => {
+    acc[car.make] = (acc[car.make] || 0) + (car.quantity || 0);
+    return acc;
+  }, {});
+
+  const pieData = {
+    labels: Object.keys(makeData),
+    datasets: [
+      {
+        data: Object.values(makeData),
+        backgroundColor: [
+          'rgba(99, 102, 241, 0.8)',
+          'rgba(236, 72, 153, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(139, 92, 246, 0.8)',
+          'rgba(59, 130, 246, 0.8)',
+        ],
+        borderColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 2,
+      },
+    ],
+  };
+
+  const pieOptions = {
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: {
+          color: document.body.classList.contains('light-mode') ? '#475569' : '#94a3b8',
+          font: {
+            family: 'Outfit',
+            size: 14
+          }
+        }
+      }
+    },
+    maintainAspectRatio: false
+  };
+
   return (
     <div className="container" style={{ paddingBottom: '5rem' }}>
       <Navbar />
@@ -168,11 +213,11 @@ const AdminPortal = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', margin: '2rem 0' }}>
         <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #4f46e5' }}>
           <h3 style={{ color: 'var(--text-secondary)', fontSize: '1rem', margin: '0 0 0.5rem 0' }}>Total Vehicle Models</h3>
-          <p style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0, color: 'white' }}>{vehicles.length}</p>
+          <p style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0, color: 'var(--text-primary)' }}>{vehicles.length}</p>
         </div>
         <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid var(--success)' }}>
           <h3 style={{ color: 'var(--text-secondary)', fontSize: '1rem', margin: '0 0 0.5rem 0' }}>Total Fleet Stock</h3>
-          <p style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0, color: 'white' }}>{vehicles.reduce((sum, car) => sum + (car.quantity || 0), 0)} units</p>
+          <p style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0, color: 'var(--text-primary)' }}>{vehicles.reduce((sum, car) => sum + (car.quantity || 0), 0)} units</p>
         </div>
         <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid var(--danger)' }}>
           <h3 style={{ color: 'var(--text-secondary)', fontSize: '1rem', margin: '0 0 0.5rem 0' }}>Low Stock Alert (&lt;5 units)</h3>
@@ -180,6 +225,16 @@ const AdminPortal = () => {
         </div>
       </div>
       
+      {/* Analytics Section */}
+      {vehicles.length > 0 && (
+        <div className="glass-panel" style={{ padding: '2rem', marginBottom: '2rem' }}>
+          <h2 style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)', fontSize: '1.2rem' }}>Analytics: Stock by Make</h2>
+          <div style={{ height: '250px', width: '100%', display: 'flex', justifyContent: 'center' }}>
+            <Pie data={pieData} options={pieOptions} />
+          </div>
+        </div>
+      )}
+
       <div className="admin-grid">
         {/* Magic Form Area */}
         <div className="glass-panel magic-form-container" style={{ padding: '2.5rem', height: 'fit-content', position: 'sticky', top: '2rem' }}>
@@ -225,13 +280,13 @@ const AdminPortal = () => {
             </div>
             
             {/* Custom Quantity Selector */}
-            <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
+            <div style={{ background: 'var(--glass-bg)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
               <label style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', display: 'block', marginBottom: '10px' }}>Initial Stock Quantity</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%' }}>
                 <button 
                   type="button"
                   onClick={decrementQty}
-                  style={{ minWidth: '40px', flexShrink: 0, height: '40px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s', padding: 0 }}
+                  style={{ minWidth: '40px', flexShrink: 0, height: '40px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'transparent', color: 'var(--text-primary)', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s', padding: 0 }}
                 >-</button>
                 <input 
                   type="number" 
@@ -239,12 +294,12 @@ const AdminPortal = () => {
                   value={formData.quantity}
                   onChange={handleInputChange}
                   required
-                  style={{ width: '100%', minWidth: '50px', flex: 1, background: 'transparent', border: 'none', borderBottom: '2px solid var(--accent-color)', height: '40px', textAlign: 'center', color: 'white', fontSize: '1.2rem', fontWeight: 'bold', outline: 'none' }}
+                  style={{ width: '100%', minWidth: '50px', flex: 1, background: 'transparent', border: 'none', borderBottom: '2px solid var(--accent-color)', height: '40px', textAlign: 'center', color: 'var(--text-primary)', fontSize: '1.2rem', fontWeight: 'bold', outline: 'none' }}
                 />
                 <button 
                   type="button"
                   onClick={incrementQty}
-                  style={{ minWidth: '40px', flexShrink: 0, height: '40px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s', padding: 0 }}
+                  style={{ minWidth: '40px', flexShrink: 0, height: '40px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'transparent', color: 'var(--text-primary)', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s', padding: 0 }}
                 >+</button>
               </div>
             </div>
