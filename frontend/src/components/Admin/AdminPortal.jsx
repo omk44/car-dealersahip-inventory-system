@@ -119,7 +119,7 @@ const AdminPortal = () => {
   };
 
   const handleRestockClick = (car) => {
-    setRestockModal({ show: true, carId: car._id || car.id, carMake: car.make, carModel: car.model, qty: 5 });
+    setRestockModal({ show: true, carId: car._id || car.id, carMake: car.make, carModel: car.model, qty: 1 });
   };
 
   const submitRestock = async () => {
@@ -136,9 +136,25 @@ const AdminPortal = () => {
   };
 
   return (
-    <div className="container">
+    <div className="container" style={{ paddingBottom: '5rem' }}>
       <Navbar />
       <Toast message={toast.message} visible={toast.show} type={toast.type} />
+      
+      {/* Stats Bar */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', margin: '2rem 0' }}>
+        <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid #4f46e5' }}>
+          <h3 style={{ color: 'var(--text-secondary)', fontSize: '1rem', margin: '0 0 0.5rem 0' }}>Total Vehicle Models</h3>
+          <p style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0, color: 'white' }}>{vehicles.length}</p>
+        </div>
+        <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid var(--success)' }}>
+          <h3 style={{ color: 'var(--text-secondary)', fontSize: '1rem', margin: '0 0 0.5rem 0' }}>Total Fleet Stock</h3>
+          <p style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0, color: 'white' }}>{vehicles.reduce((sum, car) => sum + (car.quantity || 0), 0)} units</p>
+        </div>
+        <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderLeft: '4px solid var(--danger)' }}>
+          <h3 style={{ color: 'var(--text-secondary)', fontSize: '1rem', margin: '0 0 0.5rem 0' }}>Low Stock Alert (&lt;5 units)</h3>
+          <p style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0, color: 'var(--danger)' }}>{vehicles.filter(car => car.quantity < 5 && car.quantity > 0).length} models</p>
+        </div>
+      </div>
       
       <div className="admin-grid">
         {/* Magic Form Area */}
@@ -193,7 +209,12 @@ const AdminPortal = () => {
               {vehicles.map((car) => (
                 <div key={car._id || car.id} className="admin-list-item" style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem 1.5rem', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--glass-border)' }}>
                   <div>
-                    <h3 style={{ fontSize: '1.2rem', color: 'var(--text-primary)' }}>{car.make} {car.model} <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>({car.year})</span></h3>
+                    <h3 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      {car.make} {car.model} <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>({car.year})</span>
+                      {car.quantity < 5 && car.quantity > 0 && (
+                        <span style={{ background: 'rgba(239, 68, 68, 0.2)', color: 'var(--danger)', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '12px' }}>Low Stock</span>
+                      )}
+                    </h3>
                     <p style={{ color: 'var(--success)', fontWeight: 'bold' }}>${car.price.toLocaleString()} <span style={{ color: 'var(--text-secondary)', fontWeight: 'normal', marginLeft: '1rem' }}>Stock: {car.quantity}</span></p>
                   </div>
                   
@@ -210,41 +231,78 @@ const AdminPortal = () => {
         </div>
       </div>
 
-      {/* Custom Restock Modal */}
+      {/* Advanced Restock Modal (Template Match) */}
       {restockModal.show && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
-          <div className="glass-panel" style={{ padding: '3rem', width: '100%', maxWidth: '400px', transform: 'translateY(-20px)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
-            <h2 style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>Restock Inventory</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Adding units to: <strong style={{ color: 'var(--accent-color)' }}>{restockModal.carMake} {restockModal.carModel}</strong></p>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000 }}>
+          <div style={{ background: 'var(--bg-secondary)', width: '100%', maxWidth: '450px', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 25px 50px rgba(0,0,0,0.5)', animation: 'slideUp 0.3s ease-out' }}>
             
-            <div className="input-group" style={{ marginBottom: '2.5rem' }}>
-              <input 
-                type="number" 
-                value={restockModal.qty} 
-                onChange={(e) => setRestockModal({...restockModal, qty: e.target.value})} 
-                min="1"
-                autoFocus 
-                required 
-                style={{ fontSize: '1.2rem', padding: '12px 0' }}
-              />
-              <label>Quantity to add</label>
+            {/* Modal Header */}
+            <div style={{ background: 'linear-gradient(135deg, #10b981, #059669)', padding: '1.5rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h2 style={{ color: 'white', margin: 0, fontSize: '1.5rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '10px' }}>📦 Restock Inventory</h2>
+                <p style={{ color: 'rgba(255,255,255,0.8)', margin: 0, fontSize: '0.9rem' }}>Add inventory stock</p>
+              </div>
+              <button onClick={() => setRestockModal({ show: false, carId: null, carMake: '', carModel: '', qty: 1 })} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', transition: 'background 0.2s' }}>×</button>
             </div>
-            
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <button 
-                className="btn" 
-                onClick={() => setRestockModal({ show: false, carId: null, carMake: '', carModel: '', qty: 5 })} 
-                style={{ flex: 1, border: '1px solid var(--glass-border)', background: 'transparent', color: 'var(--text-secondary)' }}
-              >
-                Cancel
-              </button>
-              <button 
-                className="btn btn-primary" 
-                onClick={submitRestock} 
-                style={{ flex: 1, background: 'var(--success)' }}
-              >
-                Confirm (+{restockModal.qty})
-              </button>
+
+            {/* Modal Body */}
+            <div style={{ padding: '2rem' }}>
+              
+              {/* Product Info Card */}
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--glass-border)', marginBottom: '2rem' }}>
+                <div>
+                  <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.4rem' }}>{restockModal.carMake} {restockModal.carModel}</h3>
+                  <div style={{ marginTop: '0.8rem', fontSize: '0.9rem' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Current Stock: </span>
+                    <strong style={{ color: 'white' }}>{vehicles.find(v => (v._id || v.id) === restockModal.carId)?.quantity || 0} units</strong>
+                  </div>
+                </div>
+                <div style={{ width: '60px', height: '60px', background: 'linear-gradient(135deg, #10b981, #059669)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', boxShadow: '0 10px 15px rgba(16, 185, 129, 0.3)' }}>
+                  🚗
+                </div>
+              </div>
+
+              {/* Quantity Selector */}
+              <div style={{ marginBottom: '2.5rem' }}>
+                <p style={{ margin: '0 0 1rem 0', color: 'var(--text-secondary)' }}>How many units to add?</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <button 
+                    onClick={() => setRestockModal(p => ({...p, qty: Math.max(1, p.qty - 1)}))}
+                    style={{ width: '45px', height: '45px', borderRadius: '50%', border: '1px solid var(--glass-border)', background: 'transparent', color: 'white', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >-</button>
+                  <input 
+                    type="number" 
+                    value={restockModal.qty}
+                    onChange={(e) => {
+                      let val = parseInt(e.target.value);
+                      if (isNaN(val)) val = 1;
+                      if (val < 1) val = 1;
+                      setRestockModal(p => ({...p, qty: val}));
+                    }}
+                    style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', borderRadius: '12px', height: '50px', textAlign: 'center', color: 'white', fontSize: '1.2rem', fontWeight: 'bold' }}
+                  />
+                  <button 
+                    onClick={() => setRestockModal(p => ({...p, qty: p.qty + 1}))}
+                    style={{ width: '45px', height: '45px', borderRadius: '50%', border: '1px solid var(--glass-border)', background: 'transparent', color: 'white', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >+</button>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button 
+                  onClick={() => setRestockModal({ show: false, carId: null, carMake: '', carModel: '', qty: 1 })}
+                  style={{ flex: 1, padding: '14px', borderRadius: '12px', background: 'transparent', border: '1px solid var(--glass-border)', color: 'white', fontWeight: '600', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={submitRestock}
+                  style={{ flex: 1, padding: '14px', borderRadius: '12px', background: 'linear-gradient(135deg, #10b981, #059669)', border: 'none', color: 'white', fontWeight: '600', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.4)' }}
+                >
+                  Add to Stock
+                </button>
+              </div>
+
             </div>
           </div>
         </div>

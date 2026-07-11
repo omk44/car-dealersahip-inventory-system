@@ -37,6 +37,9 @@ const Dashboard = () => {
     setTimeout(() => setToast({ show: false, message: '' }), 3000);
   };
 
+  const [purchaseModal, setPurchaseModal] = useState({ show: false, car: null, qty: 1 });
+  const [purchasing, setPurchasing] = useState(false);
+
   const fetchVehicles = async () => {
     try {
       setLoading(true);
@@ -63,13 +66,27 @@ const Dashboard = () => {
     return () => clearTimeout(delayDebounceFn);
   }, [filters]);
 
-  const handlePurchase = async (id, model) => {
+  const handlePurchaseClick = (car) => {
+    setPurchaseModal({ show: true, car, qty: 1 });
+  };
+
+  const submitPurchase = async () => {
     try {
-      await api.post(`/vehicles/${id}/purchase`);
-      showToast(`Successfully purchased 1x ${model}!`);
+      setPurchasing(true);
+      // Because backend only purchases 1 at a time, we run it in a loop for the frontend quantity
+      const promises = [];
+      for (let i = 0; i < purchaseModal.qty; i++) {
+        promises.push(api.post(`/vehicles/${purchaseModal.car._id || purchaseModal.car.id}/purchase`));
+      }
+      await Promise.all(promises);
+      
+      showToast(`Successfully purchased ${purchaseModal.qty}x ${purchaseModal.car.model}!`);
+      setPurchaseModal({ show: false, car: null, qty: 1 });
       fetchVehicles();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to purchase');
+      alert(err.response?.data?.message || 'Failed to complete full purchase');
+    } finally {
+      setPurchasing(false);
     }
   };
 
@@ -155,6 +172,12 @@ const Dashboard = () => {
                     <h3 style={{ color: 'var(--success)', margin: 0, fontSize: '1.4rem' }}>${car.price.toLocaleString()}</h3>
                   </div>
 
+                  {car.quantity < 5 && car.quantity > 0 && (
+                    <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', padding: '6px 12px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '1rem', display: 'inline-block', width: 'fit-content' }}>
+                      🔥 Low Stock: Only {car.quantity} left!
+                    </div>
+                  )}
+
                   <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: car.quantity > 0 ? 'var(--success)' : 'var(--danger)', boxShadow: `0 0 10px ${car.quantity > 0 ? 'var(--success)' : 'var(--danger)'}` }}></div>
@@ -164,7 +187,7 @@ const Dashboard = () => {
                     </div>
                     <button 
                       className="btn btn-primary" 
-                      onClick={() => handlePurchase(car._id || car.id, car.model)}
+                      onClick={() => handlePurchaseClick(car)}
                       disabled={car.quantity === 0}
                       style={{ padding: '10px 24px', borderRadius: '25px' }}
                     >
@@ -177,9 +200,124 @@ const Dashboard = () => {
           )}
         </div>
       )}
+
+      {/* Advanced Purchase Modal (Template Match) */}
+      {purchaseModal.show && purchaseModal.car && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000 }}>
+          <div style={{ background: 'var(--bg-secondary)', width: '100%', maxWidth: '450px', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 25px 50px rgba(0,0,0,0.5)', animation: 'slideUp 0.3s ease-out' }}>
+            
+            {/* Modal Header */}
+            <div style={{ background: 'linear-gradient(135deg, #4f46e5, #8b5cf6)', padding: '1.5rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h2 style={{ color: 'white', margin: 0, fontSize: '1.5rem', fontWeight: '600' }}>Purchase Vehicle</h2>
+                <p style={{ color: 'rgba(255,255,255,0.8)', margin: 0, fontSize: '0.9rem' }}>Complete your transaction</p>
+              </div>
+              <button onClick={() => setPurchaseModal({show: false, car: null, qty: 1})} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', transition: 'background 0.2s' }}>×</button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: '2rem' }}>
+              
+              {/* Product Info Card */}
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--glass-border)', marginBottom: '2rem' }}>
+                <div>
+                  <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.4rem' }}>{purchaseModal.car.make} {purchaseModal.car.model}</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                    <span style={{ background: 'rgba(139, 92, 246, 0.2)', color: '#a78bfa', padding: '2px 8px', borderRadius: '6px' }}>{purchaseModal.car.category}</span>
+                    <span>•</span>
+                    <span>${purchaseModal.car.price.toLocaleString()} each</span>
+                  </div>
+                  <div style={{ marginTop: '0.8rem', fontSize: '0.9rem' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Stock: </span>
+                    <strong style={{ color: purchaseModal.car.quantity < 5 ? 'var(--danger)' : 'var(--success)' }}>{purchaseModal.car.quantity} units</strong>
+                  </div>
+                </div>
+                <div style={{ width: '60px', height: '60px', background: 'linear-gradient(135deg, #4f46e5, #8b5cf6)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem' }}>
+                  🚗
+                </div>
+              </div>
+
+              {/* Quantity Selector */}
+              <div style={{ marginBottom: '2rem' }}>
+                <p style={{ margin: '0 0 1rem 0', color: 'var(--text-secondary)' }}>How many would you like to purchase?</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                  <button 
+                    onClick={() => setPurchaseModal(p => ({...p, qty: Math.max(1, p.qty - 1)}))}
+                    style={{ width: '45px', height: '45px', borderRadius: '50%', border: '1px solid var(--glass-border)', background: 'transparent', color: 'white', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >-</button>
+                  <input 
+                    type="number" 
+                    value={purchaseModal.qty}
+                    onChange={(e) => {
+                      let val = parseInt(e.target.value);
+                      if (isNaN(val)) val = 1;
+                      if (val > purchaseModal.car.quantity) val = purchaseModal.car.quantity;
+                      if (val < 1) val = 1;
+                      setPurchaseModal(p => ({...p, qty: val}));
+                    }}
+                    style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', borderRadius: '12px', height: '50px', textAlign: 'center', color: 'white', fontSize: '1.2rem', fontWeight: 'bold' }}
+                  />
+                  <button 
+                    onClick={() => setPurchaseModal(p => ({...p, qty: Math.min(purchaseModal.car.quantity, p.qty + 1)}))}
+                    style={{ width: '45px', height: '45px', borderRadius: '50%', border: '1px solid var(--glass-border)', background: 'transparent', color: 'white', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >+</button>
+                </div>
+                
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  {[1, 2, 5].map(num => (
+                    <button 
+                      key={num}
+                      onClick={() => setPurchaseModal(p => ({...p, qty: Math.min(purchaseModal.car.quantity, num)}))}
+                      style={{ background: purchaseModal.qty === num ? '#8b5cf6' : 'rgba(255,255,255,0.05)', border: 'none', color: 'white', padding: '6px 16px', borderRadius: '20px', cursor: 'pointer', transition: 'background 0.2s' }}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                  <span style={{ marginLeft: 'auto', color: 'var(--text-secondary)', fontSize: '0.85rem', alignSelf: 'center' }}>Max available: {purchaseModal.car.quantity} units</span>
+                </div>
+              </div>
+
+              {/* Total Cost & Action */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid var(--glass-border)', marginBottom: '1.5rem' }}>
+                <div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '4px' }}>Total Cost</div>
+                  <div style={{ color: '#8b5cf6', fontSize: '1.8rem', fontWeight: 'bold' }}>${(purchaseModal.car.price * purchaseModal.qty).toLocaleString()}</div>
+                </div>
+                <div style={{ textAlign: 'right', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                  <div>{purchaseModal.qty} × ${(purchaseModal.car.price).toLocaleString()}</div>
+                  <div>Including all taxes</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button 
+                  onClick={() => setPurchaseModal({show: false, car: null, qty: 1})}
+                  style={{ flex: 1, padding: '14px', borderRadius: '12px', background: 'transparent', border: '1px solid var(--glass-border)', color: 'white', fontWeight: '600', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={submitPurchase}
+                  disabled={purchasing}
+                  style={{ flex: 1, padding: '14px', borderRadius: '12px', background: 'linear-gradient(135deg, #4f46e5, #8b5cf6)', border: 'none', color: 'white', fontWeight: '600', cursor: purchasing ? 'not-allowed' : 'pointer', opacity: purchasing ? 0.7 : 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                >
+                  {purchasing ? <div style={{ width: '20px', height: '20px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div> : 'Confirm Purchase'}
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
       
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
       `}} />
     </div>
   );
