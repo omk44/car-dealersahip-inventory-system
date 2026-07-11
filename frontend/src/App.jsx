@@ -6,6 +6,7 @@ import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 
 import Dashboard from './components/Dashboard/Dashboard';
+import AdminPortal from './components/Admin/AdminPortal';
 
 function App() {
   const { user, loading } = useContext(AuthContext);
@@ -17,6 +18,7 @@ function App() {
       <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
       <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
       <Route path="/" element={user ? <Dashboard /> : <Navigate to="/login" />} />
+      <Route path="/admin" element={user?.role === 'admin' ? <AdminPortal /> : <Navigate to="/" />} />
     </Routes>
   );
 }

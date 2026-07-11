@@ -15,9 +15,11 @@ const Navbar = () => {
         {user ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
             {user.role === 'admin' && (
-              <span style={{ background: 'rgba(99, 102, 241, 0.2)', color: 'var(--accent-color)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '600' }}>
-                Admin Portal
-              </span>
+              <Link to="/admin" style={{ textDecoration: 'none' }}>
+                <span style={{ background: 'rgba(99, 102, 241, 0.2)', color: 'var(--accent-color)', padding: '6px 14px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '600', transition: '0.3s', border: '1px solid var(--accent-color)' }}>
+                  Admin Portal ✨
+                </span>
+              </Link>
             )}
             <span style={{ color: 'var(--text-secondary)' }}>Welcome back!</span>
             <button onClick={logout} className="btn" style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
