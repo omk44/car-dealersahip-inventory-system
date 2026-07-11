@@ -20,7 +20,7 @@ describe('vehicle routes', () => {
     process.env.JWT_SECRET = 'test-secret';
   });
 
-  test('POST /api/vehicles creates a vehicle when authenticated', async () => {
+  test('POST /api/vehicles creates a vehicle when authenticated as admin', async () => {
     addVehicle.mockResolvedValueOnce({
       id: 'vehicle-id',
       make: 'Toyota',
@@ -30,7 +30,7 @@ describe('vehicle routes', () => {
     });
 
     const app = createApp();
-    const token = jwt.sign({ id: 'user-id', email: 'alex@example.com' }, process.env.JWT_SECRET);
+    const token = jwt.sign({ id: 'admin-id', email: 'admin@example.com', role: 'admin' }, process.env.JWT_SECRET);
 
     const response = await request(app)
       .post('/api/vehicles')
@@ -50,6 +50,24 @@ describe('vehicle routes', () => {
       year: 2024,
       price: 25000,
     });
+  });
+
+  test('POST /api/vehicles returns 403 Forbidden when authenticated as normal user', async () => {
+    const app = createApp();
+    const token = jwt.sign({ id: 'user-id', email: 'alex@example.com', role: 'user' }, process.env.JWT_SECRET);
+
+    const response = await request(app)
+      .post('/api/vehicles')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2024,
+        price: 25000,
+      });
+
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({ message: 'Forbidden: Admin access required' });
   });
 
   test('POST /api/vehicles rejects requests without a bearer token', async () => {
@@ -218,7 +236,7 @@ describe('vehicle routes', () => {
     expect(response.body).toEqual({ message: 'Unauthorized' });
   });
 
-  test('PUT /api/vehicles/:id updates a vehicle when authenticated', async () => {
+  test('PUT /api/vehicles/:id updates a vehicle when authenticated as admin', async () => {
     updateVehicle.mockResolvedValueOnce({
       id: 'vehicle-1',
       make: 'Toyota',
@@ -229,7 +247,7 @@ describe('vehicle routes', () => {
     });
 
     const app = createApp();
-    const token = jwt.sign({ id: 'user-id', email: 'alex@example.com' }, process.env.JWT_SECRET);
+    const token = jwt.sign({ id: 'admin-id', email: 'admin@example.com', role: 'admin' }, process.env.JWT_SECRET);
 
     const response = await request(app)
       .put('/api/vehicles/vehicle-1')
@@ -249,11 +267,24 @@ describe('vehicle routes', () => {
     expect(updateVehicle).toHaveBeenCalledWith('vehicle-1', { year: 2025, price: 27000 });
   });
 
+  test('PUT /api/vehicles/:id returns 403 Forbidden when authenticated as normal user', async () => {
+    const app = createApp();
+    const token = jwt.sign({ id: 'user-id', email: 'alex@example.com', role: 'user' }, process.env.JWT_SECRET);
+
+    const response = await request(app)
+      .put('/api/vehicles/vehicle-1')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ year: 2025, price: 27000 });
+
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({ message: 'Forbidden: Admin access required' });
+  });
+
   test('PUT /api/vehicles/:id returns 404 when the vehicle does not exist', async () => {
     updateVehicle.mockRejectedValueOnce(new Error('Vehicle not found'));
 
     const app = createApp();
-    const token = jwt.sign({ id: 'user-id', email: 'alex@example.com' }, process.env.JWT_SECRET);
+    const token = jwt.sign({ id: 'admin-id', email: 'admin@example.com', role: 'admin' }, process.env.JWT_SECRET);
 
     const response = await request(app)
       .put('/api/vehicles/nonexistent-id')
