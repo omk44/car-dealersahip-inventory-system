@@ -1,7 +1,7 @@
-import axios from 'react';
+import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5050/api',
+  baseURL: import.meta.env.VITE_API_URL,
 });
 
 // Interceptor to automatically add the Bearer token to all outgoing requests

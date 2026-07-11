@@ -1,12 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Premium Dark Theme Palette */
   --bg-primary: #0f111a;
   --bg-secondary: #1a1d2d;
   --text-primary: #ffffff;
   --text-secondary: #94a3b8;
-  --accent-color: #6366f1; /* Indigo */
+  --accent-color: #6366f1;
   --accent-hover: #4f46e5;
   --danger: #ef4444;
   --success: #10b981;
@@ -31,7 +30,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Glassmorphism Utilities */
 .glass-panel {
   background: var(--glass-bg);
   backdrop-filter: blur(12px);
@@ -40,7 +38,6 @@ body {
   border-radius: 16px;
 }
 
-/* Beautiful Buttons */
 .btn {
   padding: 10px 20px;
   border-radius: 8px;
@@ -71,7 +68,6 @@ body {
   box-shadow: none !important;
 }
 
-/* Form Inputs */
 .input-field {
   width: 100%;
   padding: 12px 16px;
@@ -89,29 +85,101 @@ body {
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
-/* Basic Layouts */
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
 }
 
-h1, h2, h3 {
-  font-weight: 600;
-  letter-spacing: -0.5px;
+/* --- EXTRA ORDINARY ADMIN FORM ANIMATIONS --- */
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 2rem;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
+@media (max-width: 900px) {
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
 }
-::-webkit-scrollbar-track {
-  background: var(--bg-primary);
+
+.glow-text {
+  background: linear-gradient(to right, #fff, var(--accent-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
-::-webkit-scrollbar-thumb {
-  background: var(--bg-secondary);
-  border-radius: 4px;
+
+.magic-form-container {
+  position: relative;
+  overflow: hidden;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-color);
+
+/* Neon border effect on the form */
+.magic-form-container::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: conic-gradient(transparent, transparent, transparent, var(--accent-color));
+  animation: rotate 4s linear infinite;
+  opacity: 0.1;
+  z-index: -1;
 }
+
+@keyframes rotate {
+  100% { transform: rotate(360deg); }
+}
+
+/* Floating Label Magic Form */
+.input-group {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 10px 0;
+  font-size: 1rem;
+  color: #fff;
+  border: none;
+  border-bottom: 2px solid rgba(255,255,255,0.2);
+  outline: none;
+  background: transparent;
+  transition: border-color 0.3s;
+}
+
+.input-group label {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  pointer-events: none;
+  transition: 0.3s ease all;
+}
+
+.input-group input:focus ~ label,
+.input-group input:valid ~ label {
+  top: -20px;
+  font-size: 0.8rem;
+  color: var(--accent-color);
+}
+
+.input-group input:focus {
+  border-bottom: 2px solid var(--accent-color);
+}
+
+.admin-list-item {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.admin-list-item:hover {
+  transform: translateX(5px);
+  box-shadow: -5px 5px 20px rgba(0,0,0,0.3);
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--bg-secondary); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
