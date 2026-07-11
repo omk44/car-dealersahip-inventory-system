@@ -10,8 +10,8 @@ A full-stack modern web application for managing a premium car dealership's inve
 ![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)
 ![Jest](https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=jest&logoColor=white)
 
-**Live Frontend Application:** *[(autoaura)](https://car-dealersahip-inventory-system.vercel.app/)*
-
+**Live Frontend Application:** [https://car-dealersahip-inventory-system.vercel.app/](https://car-dealersahip-inventory-system.vercel.app/)  
+*(Note: Backend is securely deployed on Render, frontend deployed on Vercel)*
 ---
 
 </div>
@@ -295,6 +295,112 @@ pie title Test Coverage Distribution
 </table>
 
 **Total passing test cases:** `35/35 Passing Tests`
+
+---
+
+## 🚀 Deployment
+
+### 🎨 Frontend Deployment ✅
+
+<div align="center">
+
+[![Live Demo](https://img.shields.io/badge/🌐_Live_Frontend_Demo-Click_Here-FF6B6B?style=for-the-badge&logoColor=white)](https://car-dealersahip-inventory-system.vercel.app/)
+
+**Live Frontend Application - Click to View Interface**  
+
+</div>
+
+---
+
+## 📸 Screenshots
+
+<div align="center">
+
+![Screenshots Banner](https://img.shields.io/badge/📸-Application%20Gallery-ff69b4?style=for-the-badge)
+
+</div>
+
+### 🔐 Authentication Pages
+<div align="center">
+<table>
+<tr>
+<td width="50%">
+
+![Registration Page](./screenshots/signup.png)
+*User registration with premium glassmorphic form*
+
+</td>
+<td width="50%">
+
+![Login Page](./screenshots/signin.png)
+*Secure user authentication portal*
+
+</td>
+</tr>
+</table>
+</div>
+
+### 🏠 Customer Dashboard
+<div align="center">
+<table>
+<tr>
+<td width="50%">
+
+![Customer Dashboard](./screenshots/user_dashboard1.png)
+*Main customer dashboard showing available vehicle fleet*
+
+</td>
+<td width="50%">
+
+![Low Stock Alert](./screenshots/lowstock1.png)
+*Enhanced customer view with dynamic low stock alerts*
+
+</td>
+</tr>
+</table>
+</div>
+
+### 👑 Admin Panel
+<div align="center">
+<table>
+<tr>
+<td width="50%">
+
+![Admin Dashboard Analytics](./screenshots/admin_dashboard1.png)
+*Administrative interface featuring Chart.js Analytics*
+
+</td>
+<td width="50%">
+
+![Deploy Vehicle Form](./screenshots/admin_dashboard2.png)
+*Premium sticky form for deploying new vehicles*
+
+</td>
+</tr>
+</table>
+</div>
+
+### 🛒 Purchase & Inventory Management
+<div align="center">
+<table>
+<tr>
+<td width="50%">
+
+![Purchase Flow](./screenshots/purchase.png)
+*Vehicle purchase workflow with smart quantity selector*
+
+</td>
+<td width="50%">
+
+![Restock Feature](./screenshots/restock.png)
+*Admin restock functionality for managing fleet inventory*
+
+</td>
+</tr>
+</table>
+</div>
+
+---
 
 ---
 
