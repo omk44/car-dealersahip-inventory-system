@@ -28,7 +28,7 @@ async function registerUser({ name, email, password }) {
   });
 
   const token = jwt.sign(
-    { id: createdUser._id, role: createdUser.role },
+    { id: createdUser._id, role: createdUser.role, name: createdUser.name, email: createdUser.email },
     jwtSecret,
     { expiresIn: '7d' },
   );
@@ -59,7 +59,7 @@ async function loginUser({ email, password }) {
   }
 
   const token = jwt.sign(
-    { id: user._id, role: user.role },
+    { id: user._id, role: user.role, name: user.name, email: user.email },
     jwtSecret,
     { expiresIn: '7d' },
   );

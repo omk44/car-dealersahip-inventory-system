@@ -30,6 +30,7 @@ describe('registerUser', () => {
       _id: 'user-id',
       name: 'Alex Morgan',
       email: 'alex@example.com',
+      role: 'user',
     });
     jwt.sign.mockReturnValueOnce('signed-token');
 
@@ -47,7 +48,7 @@ describe('registerUser', () => {
       password: 'hashed-password',
     });
     expect(jwt.sign).toHaveBeenCalledWith(
-      { id: 'user-id' },
+      { id: 'user-id', role: 'user', name: 'Alex Morgan', email: 'alex@example.com' },
       'test-secret',
       { expiresIn: '7d' },
     );
@@ -56,6 +57,7 @@ describe('registerUser', () => {
         id: 'user-id',
         name: 'Alex Morgan',
         email: 'alex@example.com',
+        role: 'user',
       },
       token: 'signed-token',
     });
@@ -75,6 +77,7 @@ describe('loginUser', () => {
       name: 'Alex Morgan',
       email: 'alex@example.com',
       password: 'hashed-password',
+      role: 'user',
     });
     jwt.sign.mockReturnValueOnce('signed-token');
 
@@ -86,7 +89,7 @@ describe('loginUser', () => {
     expect(User.findOne).toHaveBeenCalledWith({ email: 'alex@example.com' });
     expect(bcrypt.compare).toHaveBeenCalledWith('plain-password', 'hashed-password');
     expect(jwt.sign).toHaveBeenCalledWith(
-      { id: 'user-id' },
+      { id: 'user-id', role: 'user', name: 'Alex Morgan', email: 'alex@example.com' },
       'test-secret',
       { expiresIn: '7d' },
     );
@@ -95,6 +98,7 @@ describe('loginUser', () => {
         id: 'user-id',
         name: 'Alex Morgan',
         email: 'alex@example.com',
+        role: 'user',
       },
       token: 'signed-token',
     });
