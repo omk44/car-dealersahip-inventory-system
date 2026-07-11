@@ -10,7 +10,7 @@ A full-stack modern web application for managing a premium car dealership's inve
 ![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)
 ![Jest](https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=jest&logoColor=white)
 
-**Live Frontend Application:** *[(Coming Soon)](https://car-dealersahip-inventory-system.vercel.app/)*
+**Live Frontend Application:** *[(autoaura)](https://car-dealersahip-inventory-system.vercel.app/)*
 
 ---
 
