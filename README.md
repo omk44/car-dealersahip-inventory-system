@@ -315,6 +315,7 @@ pie title Test Coverage Distribution
 | AI Assistant | Primary Use | Rating | Best For |
 |:------------:|:-----------|:------:|:---------|
 | **Claude AI** | Architecture, TDD & Full-Stack Implementation | ⭐⭐⭐⭐⭐ | System Design, Bug Resolution & UI/UX |
+| **GitHub Copilot** | Boilerplate Setup & JWT Auth (3 Commits) | ⭐⭐⭐⭐ | Rapid Prototyping & Security Scaffolding |
 
 </div>
 
@@ -328,6 +329,7 @@ pie title Test Coverage Distribution
 - **Claude AI**: Orchestrated the strict RED-GREEN-REFACTOR workflow. Built isolated in-memory databases for tests and wrote robust Express middleware for Role-Based Access Control.
 
 #### 💻 **Code Generation & Boilerplate**
+- **GitHub Copilot**: Contributed to 3 key commits specifically focused on bootstrapping the initial project boilerplate and writing the foundational JWT authentication logic.
 - **Claude AI**: Generated complex Mongoose schemas, AuthContext routing guards, and optimized REST controllers.
 
 </td>
