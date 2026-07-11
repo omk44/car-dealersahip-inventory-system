@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
           logout();
         } else {
           setToken(storedToken);
-          setUser({ id: decoded.id, role: decoded.role });
+          setUser({ id: decoded.id, role: decoded.role, name: decoded.name, email: decoded.email });
         }
       } catch (err) {
         console.error("Invalid token found in storage");
@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
     const decoded = jwtDecode(newToken);
     localStorage.setItem('token', newToken);
     setToken(newToken);
-    setUser({ id: decoded.id, role: decoded.role });
+    setUser({ id: decoded.id, role: decoded.role, name: decoded.name, email: decoded.email });
     navigate('/'); // Redirect to dashboard
   };
 
