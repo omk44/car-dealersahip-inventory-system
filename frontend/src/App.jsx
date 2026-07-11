@@ -1,122 +1,50 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useContext } from 'react';
+import { AuthContext } from './context/AuthContext';
+
+// Simple placeholder components for now
+const Navbar = () => (
+  <nav className="glass-panel" style={{ padding: '1rem 2rem', display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
+    <h2 style={{ color: 'var(--accent-color)' }}>AutoAura Dealership</h2>
+    <div>
+      <span style={{ marginRight: '1rem' }}>Welcome!</span>
+      <button className="btn btn-primary" style={{ background: 'var(--danger)' }}>Logout</button>
+    </div>
+  </nav>
+);
+
+const Dashboard = () => (
+  <div className="container">
+    <Navbar />
+    <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center' }}>
+      <h1>Premium Vehicles Await</h1>
+      <p style={{ color: 'var(--text-secondary)', marginTop: '1rem' }}>Our sleek dashboard is being constructed...</p>
+    </div>
+  </div>
+);
+
+const Login = () => (
+  <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+    <div className="glass-panel" style={{ padding: '3rem', width: '100%', maxWidth: '400px' }}>
+      <h2 style={{ marginBottom: '2rem', textAlign: 'center' }}>Sign In</h2>
+      <input type="email" placeholder="Email" className="input-field" style={{ marginBottom: '1rem' }} />
+      <input type="password" placeholder="Password" className="input-field" style={{ marginBottom: '2rem' }} />
+      <button className="btn btn-primary" style={{ width: '100%' }}>Login</button>
+    </div>
+  </div>
+);
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { user, loading } = useContext(AuthContext);
+
+  if (loading) return <div style={{ color: 'white', textAlign: 'center', padding: '5rem' }}>Loading...</div>;
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<Dashboard />} />
+    </Routes>
+  );
 }
 
-export default App
+export default App;
