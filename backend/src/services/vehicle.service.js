@@ -60,10 +60,10 @@ async function searchVehicles(filters) {
 }
 
 async function updateVehicle(id, updateData) {
-  // Return the updated document by setting { new: true } so the caller
+  // Return the updated document by setting { returnDocument: 'after' } so the caller
   // gets back the post-update state instead of the stale pre-update one.
   const updatedVehicle = await Vehicle.findByIdAndUpdate(id, updateData, {
-    new: true,
+    returnDocument: 'after',
     runValidators: true,
   });
 
