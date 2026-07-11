@@ -73,12 +73,11 @@ const Dashboard = () => {
   const submitPurchase = async () => {
     try {
       setPurchasing(true);
-      // Because backend only purchases 1 at a time, we run it in a loop for the frontend quantity
-      const promises = [];
+      // Because backend only purchases 1 at a time, we run it in a sequential loop
+      // to avoid Mongoose race conditions where concurrent requests read the same stale stock number.
       for (let i = 0; i < purchaseModal.qty; i++) {
-        promises.push(api.post(`/vehicles/${purchaseModal.car._id || purchaseModal.car.id}/purchase`));
+        await api.post(`/vehicles/${purchaseModal.car._id || purchaseModal.car.id}/purchase`);
       }
-      await Promise.all(promises);
       
       showToast(`Successfully purchased ${purchaseModal.qty}x ${purchaseModal.car.model}!`);
       setPurchaseModal({ show: false, car: null, qty: 1 });
@@ -135,7 +134,7 @@ const Dashboard = () => {
           <div style={{ width: '1px', height: '30px', background: 'var(--glass-border)' }}></div>
           <input 
             type="number" 
-            placeholder="Max Price ($)" 
+            placeholder="Max Price (₹)" 
             value={filters.maxPrice}
             onChange={(e) => setFilters({...filters, maxPrice: e.target.value})}
             style={{ flex: 1, background: 'transparent', border: 'none', color: 'white', padding: '12px 20px', fontSize: '1rem', outline: 'none' }}
@@ -169,7 +168,7 @@ const Dashboard = () => {
                 <div style={{ padding: '2rem', flex: 1, display: 'flex', flexDirection: 'column', background: 'rgba(255,255,255,0.02)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                     <h3 style={{ fontSize: '1.6rem', margin: 0, fontWeight: '500' }}>{car.model}</h3>
-                    <h3 style={{ color: 'var(--success)', margin: 0, fontSize: '1.4rem' }}>${car.price.toLocaleString()}</h3>
+                    <h3 style={{ color: 'var(--success)', margin: 0, fontSize: '1.4rem' }}>₹{car.price.toLocaleString()}</h3>
                   </div>
 
                   {car.quantity < 5 && car.quantity > 0 && (
@@ -225,7 +224,7 @@ const Dashboard = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                     <span style={{ background: 'rgba(139, 92, 246, 0.2)', color: '#a78bfa', padding: '2px 8px', borderRadius: '6px' }}>{purchaseModal.car.category}</span>
                     <span>•</span>
-                    <span>${purchaseModal.car.price.toLocaleString()} each</span>
+                    <span>₹{purchaseModal.car.price.toLocaleString()} each</span>
                   </div>
                   <div style={{ marginTop: '0.8rem', fontSize: '0.9rem' }}>
                     <span style={{ color: 'var(--text-secondary)' }}>Stock: </span>
@@ -281,10 +280,10 @@ const Dashboard = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid var(--glass-border)', marginBottom: '1.5rem' }}>
                 <div>
                   <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '4px' }}>Total Cost</div>
-                  <div style={{ color: '#8b5cf6', fontSize: '1.8rem', fontWeight: 'bold' }}>${(purchaseModal.car.price * purchaseModal.qty).toLocaleString()}</div>
+                  <div style={{ color: '#8b5cf6', fontSize: '1.8rem', fontWeight: 'bold' }}>₹{(purchaseModal.car.price * purchaseModal.qty).toLocaleString()}</div>
                 </div>
                 <div style={{ textAlign: 'right', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                  <div>{purchaseModal.qty} × ${(purchaseModal.car.price).toLocaleString()}</div>
+                  <div>{purchaseModal.qty} × ₹{(purchaseModal.car.price).toLocaleString()}</div>
                   <div>Including all taxes</div>
                 </div>
               </div>

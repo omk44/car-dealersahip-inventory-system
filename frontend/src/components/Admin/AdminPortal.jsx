@@ -186,7 +186,7 @@ const AdminPortal = () => {
             <div style={{ display: 'flex', gap: '1rem' }}>
               <div className="input-group" style={{ flex: 1 }}>
                 <input type="number" name="price" value={formData.price} onChange={handleInputChange} required />
-                <label>Price ($)</label>
+                <label>Price (₹)</label>
               </div>
               <div className="input-group" style={{ flex: 1 }}>
                 <input type="number" name="quantity" value={formData.quantity} onChange={handleInputChange} required />
@@ -215,7 +215,7 @@ const AdminPortal = () => {
                         <span style={{ background: 'rgba(239, 68, 68, 0.2)', color: 'var(--danger)', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '12px' }}>Low Stock</span>
                       )}
                     </h3>
-                    <p style={{ color: 'var(--success)', fontWeight: 'bold' }}>${car.price.toLocaleString()} <span style={{ color: 'var(--text-secondary)', fontWeight: 'normal', marginLeft: '1rem' }}>Stock: {car.quantity}</span></p>
+                    <p style={{ color: 'var(--success)', fontWeight: 'bold' }}>₹{car.price.toLocaleString()} <span style={{ color: 'var(--text-secondary)', fontWeight: 'normal', marginLeft: '1rem' }}>Stock: {car.quantity}</span></p>
                   </div>
                   
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
