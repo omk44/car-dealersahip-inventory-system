@@ -5,15 +5,7 @@ import Navbar from './components/common/Navbar';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 
-const Dashboard = () => (
-  <div className="container">
-    <Navbar />
-    <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center' }}>
-      <h1>Premium Vehicles Await</h1>
-      <p style={{ color: 'var(--text-secondary)', marginTop: '1rem' }}>Our sleek dashboard is being constructed...</p>
-    </div>
-  </div>
-);
+import Dashboard from './components/Dashboard/Dashboard';
 
 function App() {
   const { user, loading } = useContext(AuthContext);
