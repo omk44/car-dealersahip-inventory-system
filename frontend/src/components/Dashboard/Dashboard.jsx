@@ -76,11 +76,11 @@ const Dashboard = () => {
   const submitPurchase = async () => {
     try {
       setPurchasing(true);
-      // Because backend only purchases 1 at a time, we run it in a sequential loop
-      // to avoid Mongoose race conditions where concurrent requests read the same stale stock number.
-      for (let i = 0; i < purchaseModal.qty; i++) {
-        await api.post(`/vehicles/${purchaseModal.car._id || purchaseModal.car.id}/purchase`);
-      }
+      // Send a single request with the requested quantity.
+      // The backend uses atomic $inc operations to prevent race conditions during concurrent purchases.
+      await api.post(`/vehicles/${purchaseModal.car._id || purchaseModal.car.id}/purchase`, {
+        quantity: purchaseModal.qty
+      });
       
       showToast(`Successfully purchased ${purchaseModal.qty}x ${purchaseModal.car.model}!`);
       setPurchaseModal({ show: false, car: null, qty: 1 });

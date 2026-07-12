@@ -82,21 +82,22 @@ async function deleteVehicle(id) {
   }
 }
 
-async function purchaseVehicle(id) {
-  // First, find the vehicle to check stock
-  const vehicle = await Vehicle.findById(id);
+async function purchaseVehicle(id, quantity = 1) {
+  // Atomically find and update the vehicle only if it has enough stock
+  const vehicle = await Vehicle.findOneAndUpdate(
+    { _id: id, quantity: { $gte: quantity } },
+    { $inc: { quantity: -quantity } },
+    { new: true, runValidators: true }
+  );
 
   if (!vehicle) {
-    throw new Error('Vehicle not found');
-  }
-
-  if (vehicle.quantity <= 0) {
+    // Determine if it was a 404 Not Found or a 400 Out of Stock
+    const exists = await Vehicle.findById(id);
+    if (!exists) {
+      throw new Error('Vehicle not found');
+    }
     throw new Error('Vehicle out of stock');
   }
-
-  // Decrement the quantity and save
-  vehicle.quantity -= 1;
-  await vehicle.save();
 
   return formatVehicle(vehicle);
 }

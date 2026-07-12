@@ -367,7 +367,7 @@ describe('vehicle routes', () => {
       year: 2024,
       price: 25000,
       category: 'Sedan',
-      quantity: 0,
+      quantity: 3,
     });
 
     const app = createApp();
@@ -375,7 +375,8 @@ describe('vehicle routes', () => {
 
     const response = await request(app)
       .post('/api/vehicles/vehicle-1/purchase')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Authorization', `Bearer ${token}`)
+      .send({ quantity: 2 });
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
@@ -385,9 +386,9 @@ describe('vehicle routes', () => {
       year: 2024,
       price: 25000,
       category: 'Sedan',
-      quantity: 0,
+      quantity: 3,
     });
-    expect(purchaseVehicle).toHaveBeenCalledWith('vehicle-1');
+    expect(purchaseVehicle).toHaveBeenCalledWith('vehicle-1', 2);
   });
 
   test('POST /api/vehicles/:id/purchase returns 400 when out of stock', async () => {
@@ -398,7 +399,8 @@ describe('vehicle routes', () => {
 
     const response = await request(app)
       .post('/api/vehicles/vehicle-1/purchase')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Authorization', `Bearer ${token}`)
+      .send({ quantity: 2 });
 
     expect(response.status).toBe(400);
     expect(response.body).toEqual({ message: 'Vehicle out of stock' });
@@ -412,7 +414,8 @@ describe('vehicle routes', () => {
 
     const response = await request(app)
       .post('/api/vehicles/nonexistent-id/purchase')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Authorization', `Bearer ${token}`)
+      .send({ quantity: 1 });
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual({ message: 'Vehicle not found' });
@@ -422,7 +425,8 @@ describe('vehicle routes', () => {
     const app = createApp();
 
     const response = await request(app)
-      .post('/api/vehicles/vehicle-1/purchase');
+      .post('/api/vehicles/vehicle-1/purchase')
+      .send({ quantity: 1 });
 
     expect(response.status).toBe(401);
     expect(response.body).toEqual({ message: 'Unauthorized' });

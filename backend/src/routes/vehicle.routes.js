@@ -1,4 +1,5 @@
 const express = require('express');
+const { rateLimit } = require('express-rate-limit');
 const { authenticateToken, requireAdmin } = require('../middleware/auth.middleware');
 const {
   addVehicle,
@@ -11,6 +12,15 @@ const {
 } = require('../services/vehicle.service');
 
 const router = express.Router();
+
+// Rate limiter for purchases: max 5 requests per IP per minute
+const purchaseLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 5,
+  message: { message: 'Too many purchase requests, please try again after a minute' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Centralised error handler that maps known service-layer error messages
 // to the correct HTTP status code. Keeps individual route handlers clean
@@ -81,9 +91,10 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-router.post('/:id/purchase', authenticateToken, async (req, res) => {
+router.post('/:id/purchase', authenticateToken, purchaseLimiter, async (req, res) => {
   try {
-    const purchasedVehicle = await purchaseVehicle(req.params.id);
+    const quantity = req.body.quantity ? Number(req.body.quantity) : 1;
+    const purchasedVehicle = await purchaseVehicle(req.params.id, quantity);
     return res.status(200).json(purchasedVehicle);
   } catch (error) {
     return handleRouteError(res, error);
