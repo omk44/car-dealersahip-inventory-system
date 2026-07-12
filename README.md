@@ -301,14 +301,31 @@ pie title Test Coverage Distribution
 
 ## 🚀 Deployment
 
-### 🎨 Frontend Deployment ✅
+### 🌐 Full-Stack Cloud Architecture ✅
+
+This application utilizes a decoupled, production-ready deployment architecture:
 
 <div align="center">
+<table>
+<tr>
+<td width="50%" align="center">
 
-[![Live Demo](https://img.shields.io/badge/🌐_Live_Frontend_Demo-Click_Here-FF6B6B?style=for-the-badge&logoColor=white)](https://car-dealersahip-inventory-system.vercel.app/)
+### 🎨 Frontend UI (Vercel)
+[![Vercel Deployment](https://img.shields.io/badge/Deployed_on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://car-dealersahip-inventory-system.vercel.app/)
 
-**Live Frontend Application - Click to View Interface**  
+**[Click here to view Live Application](https://car-dealersahip-inventory-system.vercel.app/)**
 
+</td>
+<td width="50%" align="center">
+
+### ⚙️ Backend API (Render)
+![Render Deployment](https://img.shields.io/badge/Deployed_on-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)
+
+**Node.js API connected to MongoDB Atlas**
+
+</td>
+</tr>
+</table>
 </div>
 
 ---
