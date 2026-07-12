@@ -115,6 +115,7 @@ The **AutoAura Dealership Management System** is a comprehensive solution for mo
 ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
 ![VS Code](https://img.shields.io/badge/VS_Code-0078D4?style=for-the-badge&logo=visual%20studio%20code&logoColor=white)
 ![Claude](https://img.shields.io/badge/Claude_AI-FF6B35?style=for-the-badge&logoColor=white)
+![Gemini](https://img.shields.io/badge/Gemini_AI-1A73E8?style=for-the-badge&logo=googlebard&logoColor=white)
 
 </div>
 
@@ -422,6 +423,7 @@ pie title Test Coverage Distribution
 |:------------:|:-----------|:------:|:---------|
 | **Claude AI** | Architecture, TDD & Full-Stack Implementation | ⭐⭐⭐⭐⭐ | System Design, Bug Resolution & UI/UX |
 | **GitHub Copilot** | Boilerplate Setup & JWT Auth (3 Commits) | ⭐⭐⭐⭐ | Rapid Prototyping & Security Scaffolding |
+| **Gemini AI** | High-Concurrency Logic & Interview Prep | ⭐⭐⭐⭐⭐ | Edge Case Analysis, Scalability & Advanced Refactoring |
 
 </div>
 
@@ -446,6 +448,9 @@ pie title Test Coverage Distribution
 
 #### 🐛 **Debugging & Problem Solving**
 - **Claude AI**: Solved strict CORS cross-origin connectivity issues, fixed complex JWT payload desynchronizations, and patched Mongoose deprecation warnings.
+
+#### 🧠 **Scalability & Edge Case Management**
+- **Gemini AI**: Designed MongoDB atomic `$inc` updates for high-concurrency race conditions and implemented `express-rate-limit` to prevent DDoS API abuse. Authored comprehensive interview prep guides detailing distributed system strategies (Idempotency, Write-Through Caching, Cursor Pagination).
 
 </td>
 </tr>
